@@ -3,60 +3,79 @@ import RelationshipTypes from '../enums/relationship_types.js'
 import type Model from './index.js'
 import type ModelColumn from './column.js'
 
+export type ModelRelationshipInfo = {
+  type: RelationshipTypes
+  modelName: string
+  modelColumn: string
+  tableName: string
+  tableColumn: string
+}
+
 export default class ModelRelationship {
   declare foreignKey: string
+  declare parent: ModelRelationshipInfo
+  declare child: ModelRelationshipInfo
 
-  declare parentType: RelationshipTypes
-  declare parentModelName: string
-  declare parentModelColumn: string
-  declare parentTableName: string
-  declare parentTableColumn: string
-
-  declare childType: RelationshipTypes
-  declare childModelName: string
-  declare childModelColumn: string
-  declare childTableName: string
-  declare childTableColumn: string
-
-  constructor(type: RelationshipTypes, column: ModelColumn, tables: Model[]) {
+  constructor(type: RelationshipTypes, column: ModelColumn, models: Model[]) {
     const isBelongsTo = type === RelationshipTypes.BELONGS_TO
-    const local = tables.find((table) => table.tableName === column.tableName)
-    const foreign = tables.find((table) => table.tableName === column.foreignKeyTable)
+    const local = models.find((model) => model.tableName === column.tableName)
+    const foreign = models.find((model) => model.tableName === column.foreignKeyTable)
 
-    const [parentTable, childTable] = isBelongsTo ? [foreign, local] : [local, foreign]
+    const [parentModel, childModel] = isBelongsTo ? [foreign, local] : [local, foreign]
     const [parentColumn, childColumn] = isBelongsTo
       ? [column.foreignKeyColumn, column.columnName]
       : [column.columnName, column.foreignKeyColumn]
 
     this.foreignKey = `${column.foreignKeyTable}.${column.foreignKeyColumn}`
 
-    this.parentTableName = parentTable!.tableName
-    this.childTableName = childTable!.tableName
+    this.parent = {
+      type: type,
+      tableName: parentModel!.tableName,
+      tableColumn: parentColumn!,
+      modelName: parentModel!.name,
+      modelColumn: this.#getModelColumn(parentModel!, parentColumn!),
+    }
 
-    this.parentTableColumn = parentColumn!
-    this.childTableColumn = childColumn!
+    this.child = {
+      type: type,
+      tableName: childModel!.tableName,
+      tableColumn: childColumn!,
+      modelName: childModel!.name,
+      modelColumn: this.#getModelColumn(childModel!, childColumn!),
+    }
 
-    this.parentModelName = parentTable!.name
-    this.childModelName = childTable!.name
-
-    this.parentModelColumn = this.#getModelColumn(parentTable!, this.parentTableColumn)
-    this.childModelColumn = this.#getModelColumn(childTable!, this.childTableColumn)
-
-    this.#setTypes(type, column, tables)
+    this.#setTypes(type, column, models)
   }
 
-  toDefinition() {
-    // TODO
+  getDefinitions(modelName: string) {
+    const definitions = []
+
+    if (modelName === this.parent.modelName) {
+      definitions.push(this.#getDefinition(this.parent))
+    }
+
+    if (modelName === this.child.modelName) {
+      definitions.push(this.#getDefinition(this.child))
+    }
+
+    return definitions
+  }
+
+  #getDefinition(info: ModelRelationshipInfo) {
+    return {
+      decorator: `@${info.type}(() => ${info.modelName})`,
+      property: `declare ${info.modelColumn}: ${string.capitalCase(info.type)}<typeof ${info.modelName}>`,
+    }
   }
 
   #getModelColumn(model: Model, tableColumnName: string) {
     return model.columns.find(({ columnName }) => columnName === tableColumnName)!.name
   }
 
-  #setTypes(type: RelationshipTypes, column: ModelColumn, tables: Model[]) {
-    const tableNamesSingular = tables
-      .filter((table) => table.tableName !== column.tableName)
-      .map((table) => string.singular(table.tableName))
+  #setTypes(type: RelationshipTypes, column: ModelColumn, models: Model[]) {
+    const tableNamesSingular = models
+      .filter((model) => model.tableName !== column.tableName)
+      .map((model) => string.singular(model.tableName))
 
     const tableNameSingular = string.singular(column.tableName)
     const startsWithTable = tableNamesSingular.find((name) => tableNameSingular.startsWith(name))
@@ -66,8 +85,8 @@ export default class ModelRelationship {
     // if start & end are both tables and their joined values match the current table
     // then, assume it's a many-to-many
     if (tableNameSingular === pivotName || type === RelationshipTypes.MANY_TO_MANY) {
-      this.childType = RelationshipTypes.MANY_TO_MANY
-      this.parentType = RelationshipTypes.MANY_TO_MANY
+      this.child.type = RelationshipTypes.MANY_TO_MANY
+      this.parent.type = RelationshipTypes.MANY_TO_MANY
       return
     }
 
@@ -75,14 +94,14 @@ export default class ModelRelationship {
     // note: the difference between has one & has many cannot be determined
     // so we pick the more common and move on
     if (type === RelationshipTypes.BELONGS_TO) {
-      this.childType = type
-      this.parentType = RelationshipTypes.HAS_MANY
+      this.child.type = type
+      this.parent.type = RelationshipTypes.HAS_MANY
       return
     }
 
     // otherwise, child is likely belongs to
-    this.parentType = type
-    this.childType = RelationshipTypes.BELONGS_TO
+    this.parent.type = type
+    this.child.type = RelationshipTypes.BELONGS_TO
   }
 
   static parse(models: Model[]) {
@@ -94,17 +113,17 @@ export default class ModelRelationship {
 
         if (!relationship) return
 
-        const parent = relationships.get(relationship.parentModelName) ?? new Map()
+        const parent = relationships.get(relationship.parent.modelName) ?? new Map()
 
         parent.set(relationship.foreignKey, relationship)
-        relationships.set(relationship.parentModelName, parent)
+        relationships.set(relationship.parent.modelName, parent)
 
-        if (relationship.parentModelName === relationship.childModelName) return
+        if (relationship.parent.modelName === relationship.child.modelName) return
 
-        const child = relationships.get(relationship.childModelName) ?? new Map()
+        const child = relationships.get(relationship.child.modelName) ?? new Map()
 
         child.set(relationship.foreignKey, relationship)
-        relationships.set(relationship.childModelName, child)
+        relationships.set(relationship.child.modelName, child)
       })
     })
 
