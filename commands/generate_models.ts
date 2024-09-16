@@ -1,8 +1,7 @@
-import { inject } from '@adonisjs/core'
 import { BaseCommand } from '@adonisjs/core/ace'
-import type { CommandOptions } from '@adonisjs/core/types/ace'
-import Schema from '../src/db/schema.js'
+import { CommandOptions } from '@adonisjs/core/types/ace'
 import Model from '../src/model/index.js'
+import { schema } from '../src/db/schema.js'
 
 export default class GenerateModels extends BaseCommand {
   static commandName = 'generate:models'
@@ -12,9 +11,9 @@ export default class GenerateModels extends BaseCommand {
     startApp: true,
   }
 
-  @inject()
-  async run(schema: Schema) {
-    const tables = await schema.getTables()
+  async run() {
+    const db = await this.app.container.make('lucid.db')
+    const { tables } = await schema(db)
     const models = Model.build(tables)
 
     console.log({ models })

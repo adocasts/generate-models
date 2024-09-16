@@ -1,7 +1,6 @@
-import db from '@adonisjs/lucid/services/db'
+import { Database } from '@adonisjs/lucid/database'
 import { default as schemaInspectorImport } from 'knex-schema-inspector'
 import type { Column } from 'knex-schema-inspector/dist/types/column.js'
-import type { SchemaInspector } from 'knex-schema-inspector/dist/types/schema-inspector.js'
 const schemaInspector = schemaInspectorImport.default
 
 export type TableSchema = {
@@ -9,21 +8,19 @@ export type TableSchema = {
   columns: Column[]
 }
 
-export default class Schema {
-  declare inspector: SchemaInspector
+export async function schema(db: Database) {
+  const knex = db.connection().getWriteClient()
+  const inspector = schemaInspector(knex)
+  const tableNames = await inspector.tables()
+  const promises = tableNames.map(async (name) => ({
+    name,
+    columns: await inspector.columnInfo(name),
+  }))
 
-  constructor() {
-    const knex = db.connection().getWriteClient()
-    this.inspector = schemaInspector(knex)
-  }
+  const tables = await Promise.all(promises)
 
-  async getTables(): Promise<TableSchema[]> {
-    const tableNames = await this.inspector.tables()
-    const promises = tableNames.map(async (name) => ({
-      name,
-      columns: await this.inspector.columnInfo(name),
-    }))
-
-    return Promise.all(promises)
+  return {
+    inspector,
+    tables,
   }
 }
