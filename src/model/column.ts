@@ -3,12 +3,14 @@ import { Column } from 'knex-schema-inspector/dist/types/column.js'
 import RelationshipTypes from '../enums/relationship_types.js'
 import Model from './index.js'
 import ModelRelationship from './relationship.js'
+import { extractColumnTypeScriptType } from '../extractors/type_extractor.js'
 
 export default class ModelColumn {
   declare name: string
   declare columnName: string
   declare tableName: string
-  declare type: string // TODO - potential reference: https://github.com/danvk/pg-to-ts/blob/master/src/schemaPostgres.ts
+  declare type: string
+  declare typeDb: string
   declare isPrimary: boolean
   declare isNullable: boolean
   declare isDateTime: boolean
@@ -18,6 +20,8 @@ export default class ModelColumn {
 
   constructor(info: Column) {
     this.name = string.camelCase(info.name)
+    this.type = extractColumnTypeScriptType(info.data_type)
+    this.typeDb = info.data_type
     this.columnName = info.name
     this.tableName = info.table
     this.isPrimary = info.is_primary_key
@@ -29,6 +33,26 @@ export default class ModelColumn {
 
   get isIdColumn() {
     return this.columnName.endsWith('_id')
+  }
+
+  getDecorator() {
+    if (this.isPrimary) {
+      return '@column({ isPrimary: true })'
+    }
+
+    if (this.type === 'DateTime' && this.name === 'createdAt') {
+      return '@column.dateTime({ autoCreate: true })'
+    }
+
+    if (this.type === 'DateTime' && this.name === 'updatedAt') {
+      return '@column.dateTime({ autoCreate: true, autoUpdate: true })'
+    }
+
+    if (this.type === 'DateTime') {
+      return '@column.dateTime()'
+    }
+
+    return '@column()'
   }
 
   getRelationship(tables: Model[]) {

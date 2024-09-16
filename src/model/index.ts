@@ -5,6 +5,7 @@ import ModelRelationship from './relationship.js'
 
 export default class Model {
   declare name: string
+  declare fileName: string
   declare tableName: string
   declare columns: ModelColumn[]
   declare relationships: ModelRelationship[]
@@ -13,12 +14,9 @@ export default class Model {
 
   constructor(name: string, columns: ModelColumn[]) {
     this.name = generators.modelName(name)
+    this.fileName = generators.modelFileName(name)
     this.tableName = name
     this.columns = columns
-  }
-
-  setPivotTable(isPivotTable: boolean) {
-    this.isPivotTable = isPivotTable
   }
 
   static build(tables: TableSchema[]) {
@@ -27,10 +25,13 @@ export default class Model {
 
     for (let model of models) {
       const ships = relationships.get(model.name)
-      model.relationships = [...(ships?.values() || [])]
+      const values = [...(ships?.values() || [])]
+
+      model.relationships = values
+      model.isPivotTable = values.filter((relation) => relation.isManyToMany)?.length >= 2
     }
 
-    return models
+    return models.filter((model) => !model.isPivotTable)
   }
 
   static #getModelsFromTables(tables: TableSchema[]) {

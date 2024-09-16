@@ -29,7 +29,7 @@
     "quick:test": "node --import=./tsnode.esm.js --enable-source-maps bin/test.ts",
     "pretest": "npm run lint",
     "test": "c8 npm run quick:test",
-    "prebuild": "npm run lint && npm run clean",
+    "prebuild": "npm run clean",
     "build": "tsc",
     "postbuild": "npm run copy:templates && npm run index:commands",
     "index:commands": "adonis-kit index build/commands",

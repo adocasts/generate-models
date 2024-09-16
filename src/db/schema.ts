@@ -8,11 +8,14 @@ export type TableSchema = {
   columns: Column[]
 }
 
+const ignoreTables = ['adonis_schema', 'adonis_schema_versions']
+
 export async function schema(db: Database) {
   const knex = db.connection().getWriteClient()
   const inspector = schemaInspector(knex)
   const tableNames = await inspector.tables()
-  const promises = tableNames.map(async (name) => ({
+  const targetTableNames = tableNames.filter((name) => !ignoreTables.includes(name))
+  const promises = targetTableNames.map(async (name) => ({
     name,
     columns: await inspector.columnInfo(name),
   }))

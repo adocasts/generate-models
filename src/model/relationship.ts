@@ -9,6 +9,7 @@ export type ModelRelationshipInfo = {
   modelColumn: string
   tableName: string
   tableColumn: string
+  relatedModelName: string
 }
 
 export default class ModelRelationship {
@@ -34,6 +35,7 @@ export default class ModelRelationship {
       tableColumn: parentColumn!,
       modelName: parentModel!.name,
       modelColumn: this.#getModelColumn(parentModel!, parentColumn!),
+      relatedModelName: childModel!.name
     }
 
     this.child = {
@@ -42,9 +44,16 @@ export default class ModelRelationship {
       tableColumn: childColumn!,
       modelName: childModel!.name,
       modelColumn: this.#getModelColumn(childModel!, childColumn!),
+      relatedModelName: parentModel!.name
     }
 
     this.#setTypes(type, column, models)
+  }
+
+  get isManyToMany() {
+    const isParent = this.parent.type === RelationshipTypes.MANY_TO_MANY
+    const isChild = this.child.type === RelationshipTypes.MANY_TO_MANY
+    return isParent && isChild
   }
 
   getDefinitions(modelName: string) {
@@ -62,9 +71,19 @@ export default class ModelRelationship {
   }
 
   #getDefinition(info: ModelRelationshipInfo) {
+    let propertyName = string.camelCase(info.relatedModelName)
+
+    switch (info.type) {
+      case RelationshipTypes.HAS_MANY:
+      case RelationshipTypes.MANY_TO_MANY:
+        propertyName = string.plural(propertyName)
+        break
+    }
+
     return {
-      decorator: `@${info.type}(() => ${info.modelName})`,
-      property: `declare ${info.modelColumn}: ${string.capitalCase(info.type)}<typeof ${info.modelName}>`,
+      type: info.type,
+      decorator: `@${info.type}(() => ${info.relatedModelName})`,
+      property: `declare ${propertyName}: ${string.pascalCase(info.type)}<typeof ${info.relatedModelName}>`,
     }
   }
 
