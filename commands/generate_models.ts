@@ -19,12 +19,7 @@ export default class GenerateModels extends BaseCommand {
     const models = Model.build(tables)
 
     for (let model of models) {
-      await codemods.makeUsingStub(stubsRoot, 'generate/model.stub', { 
-        model,
-        relationships: model.relationships.reduce<{ decorator: string; property: string; }[]>((relationships, relationship) => {
-          return [...relationships, ...relationship.getDefinitions(model.name)]
-        }, [])
-      })
+      await codemods.makeUsingStub(stubsRoot, 'generate/model.stub', { model })
     }
   }
 }

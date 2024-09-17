@@ -12,6 +12,12 @@ export type ModelRelationshipInfo = {
   relatedModelName: string
 }
 
+export type ModelRelationshipDefinition = {
+  type: RelationshipTypes
+  decorator: string
+  property: string
+}
+
 export default class ModelRelationship {
   declare foreignKey: string
   declare parent: ModelRelationshipInfo
@@ -26,8 +32,6 @@ export default class ModelRelationship {
     const [parentColumn, childColumn] = isBelongsTo
       ? [column.foreignKeyColumn, column.columnName]
       : [column.columnName, column.foreignKeyColumn]
-
-    this.foreignKey = `${column.foreignKeyTable}.${column.foreignKeyColumn}`
 
     this.parent = {
       type: type,
@@ -47,6 +51,8 @@ export default class ModelRelationship {
       relatedModelName: parentModel!.name
     }
 
+    this.foreignKey = `${this.parent.tableName}.${this.parent.tableColumn}_${this.child.tableName}.${this.child.tableColumn}`
+
     this.#setTypes(type, column, models)
   }
 
@@ -57,7 +63,7 @@ export default class ModelRelationship {
   }
 
   getDefinitions(modelName: string) {
-    const definitions = []
+    const definitions: ModelRelationshipDefinition[] = []
 
     if (modelName === this.parent.modelName) {
       definitions.push(this.#getDefinition(this.parent))
@@ -70,7 +76,7 @@ export default class ModelRelationship {
     return definitions
   }
 
-  #getDefinition(info: ModelRelationshipInfo) {
+  #getDefinition(info: ModelRelationshipInfo): ModelRelationshipDefinition {
     let propertyName = string.camelCase(info.relatedModelName)
 
     switch (info.type) {

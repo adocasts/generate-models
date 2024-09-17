@@ -1,15 +1,13 @@
 import { DateTime } from 'luxon'
 import { BaseModel, column } from '@adonisjs/lucid/orm'
 
-export default class {{ model.name }} extends BaseModel {
-  {{ #each model.columns as column }}
+export default class {{ model.name }} extends BaseModel {{ '{' }}{{ #each model.columns as column }}
     {{ column.getDecorator() }}
     declare {{ column.name }}: {{ column.type }}
-  {{ /each }}
-  {{ #each relationships as relationship }}
+  {{ /each }}{{ #each model.relationships as relationship, index }}
     {{ relationship.decorator }}
-    {{{ relationship.property }}}
-  {{ /each }}
+    {{{ relationship.property }}}{{ index + 1 < model.relationships.length ? '\n' : '' }}
+{{ /each }}
 }
 
 {{{
