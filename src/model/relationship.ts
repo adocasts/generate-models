@@ -14,6 +14,7 @@ export type ModelRelationshipInfo = {
 
 export type ModelRelationshipDefinition = {
   type: RelationshipTypes
+  relatedModelName: string
   decorator: string
   property: string
 }
@@ -88,6 +89,7 @@ export default class ModelRelationship {
 
     return {
       type: info.type,
+      relatedModelName: info.relatedModelName,
       decorator: `@${info.type}(() => ${info.relatedModelName})`,
       property: `declare ${propertyName}: ${string.pascalCase(info.type)}<typeof ${info.relatedModelName}>`,
     }

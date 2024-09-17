@@ -2,6 +2,7 @@ import { generators } from '@adonisjs/core/app'
 import ModelColumn from './column.js'
 import { TableSchema } from '../db/schema.js'
 import ModelRelationship, { ModelRelationshipDefinition } from './relationship.js'
+import ModelImportManager from '../extractors/import_extractor.js'
 
 export default class Model {
   declare name: string
@@ -9,6 +10,7 @@ export default class Model {
   declare tableName: string
   declare columns: ModelColumn[]
   declare relationships: ModelRelationshipDefinition[]
+  declare imports: string[]
 
   isPivotTable: boolean = false
 
@@ -26,6 +28,7 @@ export default class Model {
     for (let model of models) {
       const ships = relationships.get(model.name)
       const values = [...(ships?.values() || [])]
+      const importManager = new ModelImportManager()
 
       model.isPivotTable = values.filter((relation) => relation.isManyToMany)?.length >= 2
       model.relationships = values.reduce<ModelRelationshipDefinition[]>(
@@ -34,6 +37,8 @@ export default class Model {
         },
         []
       )
+
+      model.imports = importManager.extract(model)
     }
 
     return models.filter((model) => !model.isPivotTable)
