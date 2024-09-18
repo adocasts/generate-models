@@ -2,11 +2,11 @@
 {{ statement }}{{{ '\n' }}}
 {{ /each }}
 export default class {{ model.name }} extends BaseModel {{ '{' }}{{ #each model.columns as column }}
-    {{ column.getDecorator() }}
-    declare {{ column.name }}: {{ column.type }}{{ column.isNullable ? ' | null' : '' }}
+  {{ column.getDecorator() }}
+  declare {{ column.name }}: {{ column.type }}{{ column.isNullable ? ' | null' : '' }}
   {{ /each }}{{ #each model.relationships as relationship, index }}
-    {{ relationship.decorator }}
-    {{{ relationship.property }}}{{ index + 1 < model.relationships.length ? '\n' : '' }}
+  {{ relationship.decorator }}
+  {{{ relationship.property }}}{{ index + 1 < model.relationships.length ? '\n' : '' }}
 {{ /each }}
 }
 
