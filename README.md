@@ -23,6 +23,8 @@ Here's what's required:
 2. Your database must be well structured, deviations will cause anomolies in the generated relationships
 3. Your AdonisJS application must have its database connection defined
 
+Right now, we only have database type to TypeScript type mappings defined for MySQL and PostgreSQL. Unknown column types will default to `unknown` if they cannot be mapped.
+
 ## Installation
 
 You can easily install and configure via the Ace CLI's `add` command.
