@@ -37,6 +37,9 @@
     "version": "npm run build",
     "prepublishOnly": "npm run build"
   },
+  "dependencies": {
+    "knex-schema-inspector": "^3.1.0"
+  },
   "devDependencies": {
     "@adonisjs/assembler": "^7.8.2",
     "@adonisjs/core": "^6.13.1",
@@ -52,7 +55,6 @@
     "copyfiles": "^2.4.1",
     "del-cli": "^5.1.0",
     "eslint": "^9.10.0",
-    "knex-schema-inspector": "^3.1.0",
     "np": "^10.0.7",
     "prettier": "^3.3.3",
     "ts-node": "^10.9.2",
