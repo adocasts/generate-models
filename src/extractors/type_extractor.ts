@@ -1,8 +1,8 @@
 /**
  * Database Type to TypeScript Type Extractor
  * TODO: Add support for MSSql and other missing Lucid Db Drivers
- * 
- * Based on ehmpathy/sql-code-generator: 
+ *
+ * Based on ehmpathy/sql-code-generator:
  * https://github.com/ehmpathy/sql-code-generator/blob/main/src/logic/sqlToTypeDefinitions/resource/common/extractDataTypeFromColumnOrArgumentDefinitionSql.ts
  */
 
@@ -10,31 +10,21 @@
 
 // https://dev.mysql.com/doc/refman/8.0/en/string-types.html
 const mysqlStringTypes = [
-  'CHAR', 
-  'VARCHAR', 
-  'BLOB', 
-  'TEXT', 
+  'CHAR',
+  'VARCHAR',
+  'BLOB',
+  'TEXT',
   'TINYTEXT',
   'MEDIUMTEXT',
   'LONGTEXT',
-  'ENUM', 
-  'SET'
+  'ENUM',
+  'SET',
 ]
 
 //www.postgresql.org/docs/9.5/datatype-character.html
-const pgStringTypes = [
-  'CHARACTER',
-  'CHAR',
-  'CHARACTER VARYING',
-  'VARCHAR',
-  'TEXT',
-  'UUID',
-]
+const pgStringTypes = ['CHARACTER', 'CHAR', 'CHARACTER VARYING', 'VARCHAR', 'TEXT', 'UUID']
 
-const dbStringTypes = new Set([
-  ...mysqlStringTypes, 
-  ...pgStringTypes
-])
+const dbStringTypes = new Set([...mysqlStringTypes, ...pgStringTypes])
 
 // #endregion
 // #region Numbers
@@ -75,10 +65,7 @@ const pgNumberTypes = [
   'SERIAL8',
 ]
 
-const dbNumberTypes = new Set([
-  ...mysqlNumberTypes,
-  ...pgNumberTypes
-])
+const dbNumberTypes = new Set([...mysqlNumberTypes, ...pgNumberTypes])
 
 // #endregion
 // #region Dates
@@ -97,24 +84,18 @@ const pgDateTypes = [
   'TIME WITH TIMEZONE',
 ]
 
-const dbDateTypes = new Set([
-  ...mysqlDateTypes,
-  ...pgDateTypes
-])
+const dbDateTypes = new Set([...mysqlDateTypes, ...pgDateTypes])
 
 // #endregion
 // #region Binary
 
 // https://dev.mysql.com/doc/refman/8.0/en/binary-varbinary.html
-const mysqlBinaryTypes = ['BINARY', 'VARBINARY'];
+const mysqlBinaryTypes = ['BINARY', 'VARBINARY']
 
 // https://www.postgresql.org/docs/9.5/datatype-binary.html
-const pgBinaryTypes = ['BYTEA'];
+const pgBinaryTypes = ['BYTEA']
 
-const dbBinaryTypes = new Set([
-  ...mysqlBinaryTypes,
-  ...pgBinaryTypes
-])
+const dbBinaryTypes = new Set([...mysqlBinaryTypes, ...pgBinaryTypes])
 
 // #endregion
 // #region Booleans
@@ -125,10 +106,7 @@ const mysqlBooleanTypes = ['BOOL', 'BOOLEAN']
 // https://www.postgresql.org/docs/9.5/datatype-boolean.html
 const pgBooleanTypes = ['BOOLEAN']
 
-const dbBooleanTypes = new Set([
-  ...mysqlBooleanTypes,
-  ...pgBooleanTypes
-])
+const dbBooleanTypes = new Set([...mysqlBooleanTypes, ...pgBooleanTypes])
 
 // #endregion
 // #region JSON
@@ -139,34 +117,25 @@ const mysqlJsonTypes = ['JSON']
 // https://www.postgresql.org/docs/9.5/datatype-json.html
 const pgJsonTypes = ['JSON', 'JSONB']
 
-const dbJsonTypes = new Set([
-  ...mysqlJsonTypes,
-  ...pgJsonTypes
-])
+const dbJsonTypes = new Set([...mysqlJsonTypes, ...pgJsonTypes])
 
 // #endregion
 
 /**
  * extract the TypeScript type from the database type
- * @param dbDataType 
- * @returns 
+ * @param dbDataType
+ * @returns
  */
 export function extractColumnTypeScriptType(dbDataType: string) {
   const isArray = dbDataType.endsWith('[]')
   const normalizedDbType = dbDataType.toUpperCase().split('[]')[0].trim()
 
-  if (dbStringTypes.has(normalizedDbType))
-    return isArray ? 'string[]' : 'string'
-  if (dbNumberTypes.has(normalizedDbType))
-    return isArray ? 'number[]' : 'number'
-  if (dbDateTypes.has(normalizedDbType))
-    return 'DateTime'
-  if (dbBinaryTypes.has(normalizedDbType))
-    return 'Buffer'
-  if (dbBooleanTypes.has(normalizedDbType))
-    return 'boolean'
-  if (dbJsonTypes.has(normalizedDbType))
-    return 'Record<string, any>'
-  
+  if (dbStringTypes.has(normalizedDbType)) return isArray ? 'string[]' : 'string'
+  if (dbNumberTypes.has(normalizedDbType)) return isArray ? 'number[]' : 'number'
+  if (dbDateTypes.has(normalizedDbType)) return 'DateTime'
+  if (dbBinaryTypes.has(normalizedDbType)) return 'Buffer'
+  if (dbBooleanTypes.has(normalizedDbType)) return 'boolean'
+  if (dbJsonTypes.has(normalizedDbType)) return 'Record<string, any>'
+
   return 'unknown'
 }

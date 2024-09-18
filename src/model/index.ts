@@ -2,7 +2,9 @@ import { generators } from '@adonisjs/core/app'
 import ModelColumn from './column.js'
 import { TableSchema } from '../db/schema.js'
 import ModelImportManager from '../extractors/import_extractor.js'
-import ModelRelationshipManager, { ModelRelationship } from '../extractors/relationship_extractor.js';
+import ModelRelationshipManager, {
+  ModelRelationship,
+} from '../extractors/relationship_extractor.js'
 
 export default class Model {
   declare name: string
@@ -23,14 +25,14 @@ export default class Model {
 
   /**
    * build the model definitions from the tables
-   * @param tables 
-   * @returns 
+   * @param tables
+   * @returns
    */
   static build(tables: TableSchema[]) {
     const models = this.#getModelsFromTables(tables)
     const relationshipManager = new ModelRelationshipManager(models)
     const relationships = relationshipManager.extract()
-    
+
     for (let model of models) {
       const importManager = new ModelImportManager()
 
@@ -43,8 +45,8 @@ export default class Model {
 
   /**
    * convert tables into model definitions
-   * @param tables 
-   * @returns 
+   * @param tables
+   * @returns
    */
   static #getModelsFromTables(tables: TableSchema[]) {
     return tables.map((table) => {

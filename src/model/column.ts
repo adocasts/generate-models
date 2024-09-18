@@ -31,7 +31,7 @@ export default class ModelColumn {
 
   /**
    * get the column decorator for the column's type
-   * @returns 
+   * @returns
    */
   getDecorator() {
     if (this.isPrimary) {

@@ -1,7 +1,7 @@
-import RelationshipTypes from "../enums/relationship_types.js";
-import ModelColumn from "../model/column.js";
-import Model from "../model/index.js";
-import string from '@adonisjs/core/helpers/string';
+import RelationshipTypes from '../enums/relationship_types.js'
+import ModelColumn from '../model/column.js'
+import Model from '../model/index.js'
+import string from '@adonisjs/core/helpers/string'
 
 type RelationMap = {
   type: RelationshipTypes
@@ -29,7 +29,7 @@ export class ModelRelationship {
   declare relatedModelName: string
   declare decoratorOptions: DecoratorOptions | undefined
   declare map: RelationMap
-  
+
   declare decorator: string
   declare property: string
 
@@ -49,8 +49,8 @@ export class ModelRelationship {
 
   /**
    * gets property name for the relationship definition
-   * @param relationMap 
-   * @returns 
+   * @param relationMap
+   * @returns
    */
   #getPropertyName(relationMap: RelationMap) {
     let propertyName = string.camelCase(relationMap.foreignKeyModel.name)
@@ -69,13 +69,15 @@ export class ModelRelationship {
 
   /**
    * gets the relationship's decorator options (if needed)
-   * @param relationMap 
-   * @returns 
+   * @param relationMap
+   * @returns
    */
   #getDecoratorOptions(relationMap: RelationMap): DecoratorOptions | undefined {
     switch (relationMap.type) {
       case RelationshipTypes.MANY_TO_MANY:
-        const defaultPivotName = string.snakeCase([relationMap.model.name, relationMap.foreignKeyModel.name].sort().join('_'))
+        const defaultPivotName = string.snakeCase(
+          [relationMap.model.name, relationMap.foreignKeyModel.name].sort().join('_')
+        )
 
         if (relationMap.pivotTableName === defaultPivotName) return
 
@@ -88,27 +90,27 @@ export class ModelRelationship {
         if (relationMap.column.name === defaultBelongsName) return
 
         return {
-          foreignKey: relationMap.column.name
+          foreignKey: relationMap.column.name,
         }
       case RelationshipTypes.HAS_MANY:
       case RelationshipTypes.HAS_ONE:
         const defaultHasName = string.camelCase(relationMap.model.name + 'Id')
 
         if (relationMap.foreignKeyColumn.name === defaultHasName) return
-        
+
         return {
-          foreignKey: relationMap.foreignKeyColumn.name
+          foreignKey: relationMap.foreignKeyColumn.name,
         }
     }
   }
 
   /**
    * converts the populated decorator options into a string for the stub
-   * @returns 
+   * @returns
    */
   #getDecoratorString() {
     const keys = Object.keys(this.decoratorOptions || {}) as Array<keyof DecoratorOptions>
-    
+
     if (!keys.length) return ''
 
     const inner = keys.reduce((str, key) => {
@@ -122,23 +124,22 @@ export class ModelRelationship {
 
   /**
    * gets definition decorator and property definition lines for the stub
-   * @returns 
+   * @returns
    */
   #getDefinition() {
     return {
       decorator: `@${this.type}(() => ${this.relatedModelName}${this.#getDecoratorString()})`,
-      property: `declare ${this.propertyName}: ${string.pascalCase(this.type)}<typeof ${this.relatedModelName}>`
+      property: `declare ${this.propertyName}: ${string.pascalCase(this.type)}<typeof ${this.relatedModelName}>`,
     }
   }
 }
 
 export default class ModelRelationshipManager {
-
   constructor(protected models: Model[]) {}
 
   /**
    * extract relationships from the loaded models
-   * @returns 
+   * @returns
    */
   extract() {
     const relationshpMaps = this.#getRelationshipMaps()
@@ -146,14 +147,14 @@ export default class ModelRelationshipManager {
   }
 
   /**
-   * get mappings for the model's relationships with information 
+   * get mappings for the model's relationships with information
    * needed to populate their definitions
-   * @returns 
+   * @returns
    */
   #getRelationshipMaps() {
     const belongsTos = this.#getBelongsTos()
     const relationships: RelationMap[] = []
-    
+
     belongsTos.map((belongsTo) => {
       const tableNamesSingular = this.models
         .filter((model) => model.tableName !== belongsTo.column.tableName)
@@ -161,8 +162,12 @@ export default class ModelRelationshipManager {
 
       // try to build a pivot table by matching table names with the current table name
       const tableNameSingular = string.singular(belongsTo.column.tableName)
-      const startsWithTable = tableNamesSingular.find((name) => tableNameSingular.startsWith(name.singular))
-      const endsWithTable = tableNamesSingular.find((name) => tableNameSingular.endsWith(name.singular))
+      const startsWithTable = tableNamesSingular.find((name) =>
+        tableNameSingular.startsWith(name.singular)
+      )
+      const endsWithTable = tableNamesSingular.find((name) =>
+        tableNameSingular.endsWith(name.singular)
+      )
       const pivotName = `${startsWithTable?.singular}_${endsWithTable?.singular}`
 
       // if they match, consider it a pivot and build a many-to-many relationship from the belongsTo info
@@ -170,8 +175,12 @@ export default class ModelRelationshipManager {
         const isStartsWith = startsWithTable?.model.name === belongsTo.foreignKeyModel.name
         const relatedModel = isStartsWith ? endsWithTable!.model : startsWithTable!.model
         const relatedColumn = isStartsWith
-          ? relatedModel.columns.find((column) => column.tableName === endsWithTable?.model.tableName)
-          : relatedModel.columns.find((column) => column.tableName === startsWithTable?.model.tableName)
+          ? relatedModel.columns.find(
+              (column) => column.tableName === endsWithTable?.model.tableName
+            )
+          : relatedModel.columns.find(
+              (column) => column.tableName === startsWithTable?.model.tableName
+            )
 
         // mark the model as a pivot, so it can be ignored
         belongsTo.model.isPivotTable = true
@@ -209,7 +218,7 @@ export default class ModelRelationshipManager {
   /**
    * get the belongs to relationships from the foreign key definitions on the models
    * we'll work backwards from here
-   * @returns 
+   * @returns
    */
   #getBelongsTos() {
     const belongsTos: RelationMap[] = []
@@ -219,7 +228,9 @@ export default class ModelRelationshipManager {
         if (!column.foreignKeyTable) return
 
         const foreignKeyModel = this.models.find((m) => m.tableName === column.foreignKeyTable)
-        const foreignKeyColumn = foreignKeyModel?.columns.find((c) => column.foreignKeyColumn === c.columnName)
+        const foreignKeyColumn = foreignKeyModel?.columns.find(
+          (c) => column.foreignKeyColumn === c.columnName
+        )
 
         if (!foreignKeyColumn || !foreignKeyModel) return
 

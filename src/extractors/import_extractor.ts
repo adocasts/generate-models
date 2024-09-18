@@ -1,4 +1,4 @@
-import Model from "../model/index.js"
+import Model from '../model/index.js'
 import string from '@adonisjs/core/helpers/string'
 
 class ModelImport {
@@ -8,7 +8,12 @@ class ModelImport {
   isDefault = false
   isType = false
 
-  constructor(name: string, namespace: string, isDefault: boolean | null = null, isType: boolean | null = null) {
+  constructor(
+    name: string,
+    namespace: string,
+    isDefault: boolean | null = null,
+    isType: boolean | null = null
+  ) {
     this.name = name
     this.namespace = namespace
     this.isDefault = isDefault ?? this.isDefault
@@ -18,7 +23,7 @@ class ModelImport {
   /**
    * converts model imports into import strings, grouped by import path
    * @param imports
-   * @returns 
+   * @returns
    */
   static getStatements(imports: ModelImport[]) {
     const groups = this.#getNamespaceGroups(imports)
@@ -41,7 +46,7 @@ class ModelImport {
   /**
    * group imports by their path
    * @param imports
-   * @returns 
+   * @returns
    */
   static #getNamespaceGroups(imports: ModelImport[]) {
     return imports.reduce<Record<string, ModelImport[]>>((groups, imp) => {
@@ -85,8 +90,8 @@ export default class ModelImportManager {
 
   /**
    * extract import statements from provided model
-   * @param model 
-   * @returns 
+   * @param model
+   * @returns
    */
   extract(model: Model) {
     this.add(new ModelImport('BaseModel', '@adonisjs/lucid/orm'))
@@ -100,11 +105,24 @@ export default class ModelImportManager {
 
     model.relationships.map((definition) => {
       if (definition.relatedModelName !== model.name) {
-        this.add(new ModelImport(definition.relatedModelName, `./${string.snakeCase(definition.relatedModelName)}.js`, true))
+        this.add(
+          new ModelImport(
+            definition.relatedModelName,
+            `./${string.snakeCase(definition.relatedModelName)}.js`,
+            true
+          )
+        )
       }
 
       this.add(new ModelImport(definition.type, '@adonisjs/lucid/orm'))
-      this.add(new ModelImport(string.pascalCase(definition.type), '@adonisjs/lucid/types/relations', false, true))
+      this.add(
+        new ModelImport(
+          string.pascalCase(definition.type),
+          '@adonisjs/lucid/types/relations',
+          false,
+          true
+        )
+      )
     })
 
     return ModelImport.getStatements([...this.#imports.values()])

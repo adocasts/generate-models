@@ -12,8 +12,8 @@ const ignoreTables = ['adonis_schema', 'adonis_schema_versions']
 
 /**
  * parse schema information from the provided database connection
- * @param db 
- * @returns 
+ * @param db
+ * @returns
  */
 export async function schema(db: Database) {
   const knex = db.connection().getWriteClient()
