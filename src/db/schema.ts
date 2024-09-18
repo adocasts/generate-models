@@ -10,6 +10,11 @@ export type TableSchema = {
 
 const ignoreTables = ['adonis_schema', 'adonis_schema_versions']
 
+/**
+ * parse schema information from the provided database connection
+ * @param db 
+ * @returns 
+ */
 export async function schema(db: Database) {
   const knex = db.connection().getWriteClient()
   const inspector = schemaInspector(knex)
@@ -20,10 +25,5 @@ export async function schema(db: Database) {
     columns: await inspector.columnInfo(name),
   }))
 
-  const tables = await Promise.all(promises)
-
-  return {
-    inspector,
-    tables,
-  }
+  return Promise.all(promises)
 }

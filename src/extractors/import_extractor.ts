@@ -15,6 +15,11 @@ class ModelImport {
     this.isType = isType ?? this.isType
   }
 
+  /**
+   * converts model imports into import strings, grouped by import path
+   * @param imports
+   * @returns 
+   */
   static getStatements(imports: ModelImport[]) {
     const groups = this.#getNamespaceGroups(imports)
 
@@ -33,6 +38,11 @@ class ModelImport {
     })
   }
 
+  /**
+   * group imports by their path
+   * @param imports
+   * @returns 
+   */
   static #getNamespaceGroups(imports: ModelImport[]) {
     return imports.reduce<Record<string, ModelImport[]>>((groups, imp) => {
       const group = groups[imp.namespace] || []
@@ -49,6 +59,10 @@ class ModelImport {
 export default class ModelImportManager {
   #imports = new Map<string, ModelImport>()
 
+  /**
+   * add or update a model import to the #imports map
+   * @param value
+   */
   add(value: ModelImport) {
     const name = this.#getName(value)
     const existing = this.#imports.get(name)
@@ -60,10 +74,20 @@ export default class ModelImportManager {
     this.#imports.set(name, existing ?? value)
   }
 
+  /**
+   * get name for the import name unique to its namespace path
+   * @param value
+   * @returns
+   */
   #getName(value: ModelImport) {
     return `${value.name}@${value.namespace}`
   }
 
+  /**
+   * extract import statements from provided model
+   * @param model 
+   * @returns 
+   */
   extract(model: Model) {
     this.add(new ModelImport('BaseModel', '@adonisjs/lucid/orm'))
     this.add(new ModelImport('column', '@adonisjs/lucid/orm'))
@@ -75,7 +99,10 @@ export default class ModelImportManager {
     })
 
     model.relationships.map((definition) => {
-      this.add(new ModelImport(definition.relatedModelName, `./${string.snakeCase(definition.relatedModelName)}.js`, true))
+      if (definition.relatedModelName !== model.name) {
+        this.add(new ModelImport(definition.relatedModelName, `./${string.snakeCase(definition.relatedModelName)}.js`, true))
+      }
+
       this.add(new ModelImport(definition.type, '@adonisjs/lucid/orm'))
       this.add(new ModelImport(string.pascalCase(definition.type), '@adonisjs/lucid/types/relations', false, true))
     })

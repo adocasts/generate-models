@@ -3,7 +3,7 @@
 {{ /each }}
 export default class {{ model.name }} extends BaseModel {{ '{' }}{{ #each model.columns as column }}
     {{ column.getDecorator() }}
-    declare {{ column.name }}: {{ column.type }}
+    declare {{ column.name }}: {{ column.type }}{{ column.isNullable ? ' | null' : '' }}
   {{ /each }}{{ #each model.relationships as relationship, index }}
     {{ relationship.decorator }}
     {{{ relationship.property }}}{{ index + 1 < model.relationships.length ? '\n' : '' }}
@@ -15,3 +15,4 @@ export default class {{ model.name }} extends BaseModel {{ '{' }}{{ #each model.
     to: app.modelsPath(model.fileName)
   })
 }}}
+{{ '\n' }}

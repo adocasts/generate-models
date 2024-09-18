@@ -146,6 +146,11 @@ const dbJsonTypes = new Set([
 
 // #endregion
 
+/**
+ * extract the TypeScript type from the database type
+ * @param dbDataType 
+ * @returns 
+ */
 export function extractColumnTypeScriptType(dbDataType: string) {
   const isArray = dbDataType.endsWith('[]')
   const normalizedDbType = dbDataType.toUpperCase().split('[]')[0].trim()

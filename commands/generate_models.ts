@@ -15,7 +15,7 @@ export default class GenerateModels extends BaseCommand {
   async run() {
     const codemods = await this.createCodemods()
     const db = await this.app.container.make('lucid.db')
-    const { tables } = await schema(db)
+    const tables = await schema(db)
     const models = Model.build(tables)
 
     for (let model of models) {

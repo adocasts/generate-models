@@ -1,8 +1,6 @@
 import string from '@adonisjs/core/helpers/string'
 import { Column } from 'knex-schema-inspector/dist/types/column.js'
 import RelationshipTypes from '../enums/relationship_types.js'
-import Model from './index.js'
-import ModelRelationship from './relationship.js'
 import { extractColumnTypeScriptType } from '../extractors/type_extractor.js'
 
 export default class ModelColumn {
@@ -31,10 +29,10 @@ export default class ModelColumn {
     this.foreignKeyColumn = info.foreign_key_column
   }
 
-  get isIdColumn() {
-    return this.columnName.endsWith('_id')
-  }
-
+  /**
+   * get the column decorator for the column's type
+   * @returns 
+   */
   getDecorator() {
     if (this.isPrimary) {
       return '@column({ isPrimary: true })'
@@ -53,14 +51,5 @@ export default class ModelColumn {
     }
 
     return '@column()'
-  }
-
-  getRelationship(tables: Model[]) {
-    if (!this.isIdColumn || !this.foreignKeyColumn) return
-
-    // mark id columns with a foreign key as a belongs to
-    const type = RelationshipTypes.BELONGS_TO
-
-    return new ModelRelationship(type, this, tables)
   }
 }
