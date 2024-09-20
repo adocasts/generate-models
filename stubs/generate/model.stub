@@ -1,10 +1,10 @@
 {{ #each model.imports as statement }}
 {{ statement }}{{{ '\n' }}}
 {{ /each }}
-export default class {{ model.name }} extends BaseModel {{ '{' }}{{ #each model.columns as column }}
+export default class {{ model.name }} extends BaseModel {{ '{' }}{{ #each model.columns as column, index }}
   {{ column.getDecorator() }}
-  declare {{ column.name }}: {{ column.type }}{{ column.isNullable ? ' | null' : '' }}
-  {{ /each }}{{ #each model.relationships as relationship, index }}
+  declare {{ column.name }}: {{ column.type }}{{ column.isNullable ? ' | null' : '' }}{{ index + 1 < model.columns.length || model.relationships.length ? '\n' : '' }}
+{{ /each }}{{ #each model.relationships as relationship, index }}
   {{ relationship.decorator }}
   {{{ relationship.property }}}{{ index + 1 < model.relationships.length ? '\n' : '' }}
 {{ /each }}
